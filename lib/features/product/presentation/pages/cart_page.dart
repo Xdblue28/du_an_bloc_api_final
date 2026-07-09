@@ -8,24 +8,7 @@ class CartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 245, 245, 245),
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 151, 51, 51),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          "Giỏ Hàng Của Bạn",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-      ),
+
       body: BlocBuilder<CartCubit, List<Map<String, dynamic>>>(
         builder: (context, state) {
           if (state.isEmpty) {
