@@ -38,3 +38,4 @@ Future<void> setupDependencies() async {
   );
   sl.registerFactory(() => LoginCubit(loginApp: sl<AuthLoginUsecase>()));
 }
+//
