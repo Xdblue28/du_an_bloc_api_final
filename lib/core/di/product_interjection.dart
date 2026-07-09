@@ -25,3 +25,4 @@ Future<void> initProduct() async {
     () => ProductCubit(get: sl(), add: sl(), delete: sl(), update: sl()),
   );
 }
+//

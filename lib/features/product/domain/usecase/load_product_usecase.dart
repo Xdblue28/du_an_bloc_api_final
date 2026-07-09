@@ -8,3 +8,4 @@ class LoadProductUsecase {
     return _repo.loadProduct(categoryId);
   }
 }
+//

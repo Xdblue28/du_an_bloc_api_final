@@ -7,3 +7,4 @@ class DeleteProductUsecase {
     return _repo.deleteProduct(id);
   }
 }
+//

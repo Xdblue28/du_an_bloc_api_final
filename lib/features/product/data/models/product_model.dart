@@ -53,3 +53,4 @@ class ProductModel extends Product {
     );
   }
 }
+//

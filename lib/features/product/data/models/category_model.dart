@@ -11,3 +11,4 @@ class CategoryModel extends ProductCategory {
     return {'id': id, 'name': name};
   }
 }
+//
