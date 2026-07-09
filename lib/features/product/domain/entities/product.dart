@@ -1,17 +1,17 @@
 import 'package:bai8_duan_final_bloc/features/product/domain/entities/product_category.dart';
 
 class Product {
-  int id;
-  int status;
-  DateTime create_At;
-  DateTime update_At;
-  String name;
-  String code;
-  double price;
-  int stock;
-  String description;
-  String linkImage;
-  ProductCategory category;
+  final int id;
+  final int status;
+  final DateTime create_At;
+  final DateTime update_At;
+  final String name;
+  final String code;
+  final double price;
+  final int stock;
+  final String description;
+  final String linkImage;
+  final ProductCategory category;
   Product({
     required this.id,
     required this.status,
