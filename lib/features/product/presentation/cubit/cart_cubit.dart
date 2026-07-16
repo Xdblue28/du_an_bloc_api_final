@@ -1,95 +1,96 @@
+import 'package:bai8_duan_final_bloc/features/product/data/models/cart_item_model.dart';
+import 'package:bai8_duan_final_bloc/features/product/domain/entities/cart_item.dart';
+import 'package:bai8_duan_final_bloc/features/product/domain/entities/product.dart';
+import 'package:bai8_duan_final_bloc/features/product/presentation/cubit/cart_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 
-class CartCubit extends Cubit<List<Map<String, dynamic>>> {
-  final Box _cartBox = Hive.box('cart_Box');
-  CartCubit() : super([]) {
+class CartCubit extends Cubit<CartState> {
+  final Box _cartBox;
+
+  CartCubit({required Box cartBox})
+    : _cartBox = cartBox,
+      super(CartState(items: [], status: CartStatus.initial)) {
     loadItem();
   }
 
   void loadItem() {
-    List<dynamic> storedItems = _cartBox.get('cart_item', defaultValue: []);
-    final items = storedItems.map((e) => Map<String, dynamic>.from(e)).toList();
-    emit(items);
+    emit(state.copyWith(status: CartStatus.loading));
+
+    try {
+      List<dynamic> storedItems = _cartBox.get('cart_item', defaultValue: []);
+      final items = storedItems.map((e) {
+        return CartItemModel.fromJson(Map<String, dynamic>.from(e)).toEntity();
+      }).toList();
+
+      emit(state.copyWith(items: items, status: CartStatus.success));
+    } catch (e) {
+      emit(state.copyWith(status: CartStatus.failure));
+    }
   }
 
-  void addItem(dynamic product) {
-    List<Map<String, dynamic>> currentItems = state
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
-    final index = currentItems.indexWhere(
-      (item) => item['id'] == product.id && item['name'] == product.name,
-    );
+  void addItem(Product product) {
+    final currentItems = List<CartItem>.from(state.items);
+    final index = currentItems.indexWhere((item) => item.id == product.id);
 
     if (index != -1) {
-      currentItems[index]['count'] = (currentItems[index]['count'] as int) + 1;
+      currentItems[index].count += 1;
     } else {
-      currentItems.add({
-        'id': product.id,
-        'name': product.name,
-        'code': product.code,
-        'price': product.price,
-        'stock': product.stock,
-        'image': product.linkImage,
-        'description': product.description,
-        'count': 1,
-      });
+      currentItems.add(CartItem(
+        id: product.id,
+        name: product.name,
+        code: product.code,
+        price: product.price,
+        stock: product.stock,
+        image: product.linkImage,
+        description: product.description,
+        count: 1,
+      ));
     }
-    saveAndEmit(currentItems);
+    _saveAndEmit(currentItems);
   }
 
   void removeCart(int index) {
-    List<Map<String, dynamic>> currentItems = state
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
+    final currentItems = List<CartItem>.from(state.items);
     if (index >= 0 && index < currentItems.length) {
-      final count = currentItems[index]['count'] as int;
-
-      if (count > 1) {
-        currentItems[index]['count'] = count - 1;
+      if (currentItems[index].count > 1) {
+        currentItems[index].count -= 1;
       } else {
         currentItems.removeAt(index);
       }
-
-      saveAndEmit(currentItems);
+      _saveAndEmit(currentItems);
     }
   }
 
   void incrementCart(int index) {
-    List<Map<String, dynamic>> currentItems = state
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
+    final currentItems = List<CartItem>.from(state.items);
     if (index >= 0 && index < currentItems.length) {
-      currentItems[index]['count'] = (currentItems[index]['count'] as int) + 1;
-      saveAndEmit(currentItems);
+      currentItems[index].count += 1;
+      _saveAndEmit(currentItems);
     }
   }
 
   void deleteCartItem(int index) {
-    List<Map<String, dynamic>> currentItems = state
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
+    final currentItems = List<CartItem>.from(state.items);
     if (index >= 0 && index < currentItems.length) {
       currentItems.removeAt(index);
-      saveAndEmit(currentItems);
+      _saveAndEmit(currentItems);
     }
   }
 
   void clearCart() {
-    saveAndEmit([]);
-  }
-
-  void saveAndEmit(List<Map<String, dynamic>> items) {
-    _cartBox.put('cart_item', items);
-    emit(items);
+    _saveAndEmit([]);
   }
 
   int totalCount() {
-    int total = 0;
-    for (var item in state) {
-      total += (item['count'] as int);
-    }
-    return total;
+    return state.items.fold(0, (sum, item) => sum + item.count);
+  }
+
+  void _saveAndEmit(List<CartItem> items) {
+    final jsonList = items.map((item) {
+      return CartItemModel.fromEntity(item).toJson();
+    }).toList();
+    _cartBox.put('cart_item', jsonList);
+    emit(state.copyWith(items: items, status: CartStatus.success));
   }
 }
-//

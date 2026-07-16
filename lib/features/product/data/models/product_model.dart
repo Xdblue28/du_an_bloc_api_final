@@ -44,9 +44,6 @@ class ProductModel extends Product {
       stock: json['stock'] as int? ?? 0,
       description: json['description'] as String? ?? '',
       linkImage: json['image'] as String? ?? '',
-
-      // 👈 CHỖ NÀY LÀ QUAN TRỌNG NHẤT:
-      // Không để String, gọi trực tiếp từ CategoryModel
       category: json['category'] != null
           ? CategoryModel.fromJson(json['category'] as Map<String, dynamic>)
           : CategoryModel(id: 0, name: "Chưa phân loại"),

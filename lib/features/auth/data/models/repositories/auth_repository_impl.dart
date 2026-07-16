@@ -15,12 +15,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }) async {
     try {
       final authModel = await remoteData.login(name: username, pass: password);
-      if (authModel.inToken.isNotEmpty) {
-        await localData.saveToken(authModel.inToken);
+      final token = authModel.accessToken;
+      if (token != null && token.isNotEmpty) {
+        await localData.saveToken(token);
         print("[auth_repo_impl]: thực hiện lưu thành công trong local");
         return authModel;
+      } else {
+        print("accessToken dang null");
+        throw Exception('Invalid token');
       }
-      throw Exception('Invalid token');
     } catch (e) {
       print("[auth_repo_impl]: có lỗi");
       rethrow;
