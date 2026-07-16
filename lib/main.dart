@@ -5,6 +5,7 @@ import 'package:bai8_duan_final_bloc/features/auth/presentation/cubit/auth_cubit
 import 'package:bai8_duan_final_bloc/features/auth/presentation/cubit/auth_state.dart';
 import 'package:bai8_duan_final_bloc/features/auth/presentation/pages/Login_Page.dart';
 import 'package:bai8_duan_final_bloc/features/product/presentation/cubit/cart_cubit.dart';
+import 'package:bai8_duan_final_bloc/features/product/presentation/cubit/product_cubit.dart';
 import 'package:bai8_duan_final_bloc/features/product/presentation/pages/product_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,14 +32,17 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => sl<AuthCubit>()..checkAuth()),
-        BlocProvider(create: (context) => CartCubit()),
+        BlocProvider(create: (context) => sl<CartCubit>()),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         routes: {
           '/login': (context) => const LoginPage(),
-          '/product': (context) => ProductPage(),
+          '/product': (context) => BlocProvider(
+            create: (context) => sl<ProductCubit>(),
+            child: ProductPage(),
+          ),
         },
         builder: (context, child) {
           return BlocListener<AuthCubit, AuthState>(
@@ -64,7 +68,10 @@ class MyApp extends StatelessWidget {
             if (state is Unauthenticated) {
               return const LoginPage();
             }
-            return ProductPage();
+            return BlocProvider(
+              create: (context) => sl<ProductCubit>(),
+              child: ProductPage(),
+            );
           },
         ),
       ),

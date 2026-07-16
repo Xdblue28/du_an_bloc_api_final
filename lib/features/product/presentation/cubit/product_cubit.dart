@@ -10,85 +10,87 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductCubit extends Cubit<ProductState> {
-  final LoadProductUsecase _get;
-  final AddProductUsecase _add;
-  final DeleteProductUsecase _delete;
-  final UpdateProductUsecase _update;
+  final LoadProductUsecase _loadProductUsecase;
+  final AddProductUsecase _addProductUsecase;
+  final DeleteProductUsecase _deleteProductUsecase;
+  final UpdateProductUsecase _updateProductUsecase;
 
   ProductCubit({
     required LoadProductUsecase get,
     required AddProductUsecase add,
     required DeleteProductUsecase delete,
     required UpdateProductUsecase update,
-  }) : _get = get,
-       _add = add,
-       _delete = delete,
-       _update = update,
-       super(productInitial());
+  }) : _loadProductUsecase = get,
+       _addProductUsecase = add,
+       _deleteProductUsecase = delete,
+       _updateProductUsecase = update,
+       super(const ProductState());
 
   int? selectedCategoryId;
-  TextEditingController nameP = TextEditingController();
-  TextEditingController codeP = TextEditingController();
-  TextEditingController priceP = TextEditingController();
-  TextEditingController stockP = TextEditingController();
-  TextEditingController descriptionP = TextEditingController();
-  TextEditingController linkImageP = TextEditingController();
+  TextEditingController nameProduct = TextEditingController();
+  TextEditingController codeProduct = TextEditingController();
+  TextEditingController priceProduct = TextEditingController();
+  TextEditingController stockProduct = TextEditingController();
+  TextEditingController descriptionProduct = TextEditingController();
+  TextEditingController linkImageProduct = TextEditingController();
 
   @override
   Future<void> close() {
-    nameP.dispose();
-    codeP.dispose();
-    priceP.dispose();
-    stockP.dispose();
-    descriptionP.dispose();
-    linkImageP.dispose();
+    nameProduct.dispose();
+    codeProduct.dispose();
+    priceProduct.dispose();
+    stockProduct.dispose();
+    descriptionProduct.dispose();
+    linkImageProduct.dispose();
     return super.close();
   }
 
   void clearForm() {
-    nameP.clear();
-    codeP.clear();
-    priceP.clear();
-    stockP.clear();
-    descriptionP.clear();
-    linkImageP.clear();
+    nameProduct.clear();
+    codeProduct.clear();
+    priceProduct.clear();
+    stockProduct.clear();
+    descriptionProduct.clear();
+    linkImageProduct.clear();
   }
 
   Future<void> loadProduct({required int? categoryId}) async {
     selectedCategoryId = categoryId;
     if (isClosed) return;
-    emit(productLoading());
+    emit(state.copyWith(status: ProductStatus.loading));
     try {
-      final products = await _get(categoryId: categoryId);
+      final products = await _loadProductUsecase(categoryId: categoryId);
       if (isClosed) return;
-      emit(productSuccess(products: products));
+      emit(state.copyWith(status: ProductStatus.success, products: products));
     } on UnauthorizedException {
       print("[ProductCubit] loadProduct: hết token, đợi AuthCubit navigate...");
     } catch (e) {
       print("Có lỗi trong việc gọi tới server $e");
       if (isClosed) return;
-      emit(productFailure());
+      emit(
+        state.copyWith(status: ProductStatus.failure, errMessage: e.toString()),
+      );
     }
   }
 
   Future<void> addProduct({required int categoryId}) async {
     if (isClosed) return;
-    emit(productLoading());
+    emit(state.copyWith(status: ProductStatus.loading));
     try {
       final newProduct = Product(
         id: 0,
         status: 1,
         create_At: DateTime.now(),
         update_At: DateTime.now(),
-        name: nameP.text,
-        code: codeP.text,
-        price: double.tryParse(priceP.text.trim()) ?? 0.0,
-        stock: int.tryParse(stockP.text.trim()) ?? 0,
-        description: descriptionP.text,
-        linkImage: linkImageP.text,
+        name: nameProduct.text,
+        code: codeProduct.text,
+        price: double.tryParse(priceProduct.text.trim()) ?? 0.0,
+        stock: int.tryParse(stockProduct.text.trim()) ?? 0,
+        description: descriptionProduct.text,
+        linkImage: linkImageProduct.text,
         category: ProductCategory(id: categoryId, name: ""),
       );
-      await _add(newProduct);
+      await _addProductUsecase(newProduct);
       if (isClosed) return;
       await loadProduct(categoryId: selectedCategoryId);
       clearForm();
@@ -98,13 +100,15 @@ class ProductCubit extends Cubit<ProductState> {
     } catch (e) {
       print("Có lỗi ở việc gọi server || cubit");
       if (isClosed) return;
-      emit(productFailure());
+      emit(
+        state.copyWith(status: ProductStatus.failure, errMessage: e.toString()),
+      );
     }
   }
 
   Future<bool> deleteProduct(int id, {required int? categoryId}) async {
     try {
-      await _delete(id);
+      await _deleteProductUsecase(id);
       if (isClosed) return false;
       await loadProduct(categoryId: categoryId);
       print("cubit: Xóa thành công");
@@ -117,29 +121,42 @@ class ProductCubit extends Cubit<ProductState> {
     } catch (e) {
       print("Có lỗi cubit delete Product");
       if (isClosed) return false;
-      emit(productFailure());
+      emit(
+        state.copyWith(status: ProductStatus.failure, errMessage: e.toString()),
+      );
       return false;
     }
   }
 
+  void setData(Product product) {
+    nameProduct.text = product.name;
+    codeProduct.text = product.code;
+    priceProduct.text = product.price.toString();
+    stockProduct.text = product.stock.toString();
+    descriptionProduct.text = product.description;
+    linkImageProduct.text = product.linkImage;
+    selectedCategoryId = product.category.id;
+    emit(state.copyWith());
+  }
+
   Future<void> updateProduct(Product product, {required int categoryId}) async {
     if (isClosed) return;
-    emit(productLoading());
+    emit(state.copyWith(status: ProductStatus.loading));
     try {
       final updateP = Product(
         id: product.id,
         status: 1,
         create_At: product.create_At,
         update_At: DateTime.now(),
-        name: nameP.text,
-        code: codeP.text,
-        price: double.tryParse(priceP.text.trim()) ?? 0.0,
-        stock: int.tryParse(stockP.text.trim()) ?? 0,
-        description: descriptionP.text,
-        linkImage: linkImageP.text,
+        name: nameProduct.text,
+        code: codeProduct.text,
+        price: double.tryParse(priceProduct.text.trim()) ?? 0.0,
+        stock: int.tryParse(stockProduct.text.trim()) ?? 0,
+        description: descriptionProduct.text,
+        linkImage: linkImageProduct.text,
         category: ProductCategory(id: categoryId, name: ""),
       );
-      await _update(updateP);
+      await _updateProductUsecase(updateP);
       if (isClosed) return;
       await loadProduct(categoryId: selectedCategoryId);
       clearForm();
@@ -151,7 +168,9 @@ class ProductCubit extends Cubit<ProductState> {
     } catch (e) {
       print("Có lỗi trong update ở cubit");
       if (isClosed) return;
-      emit(productFailure());
+      emit(
+        state.copyWith(status: ProductStatus.failure, errMessage: e.toString()),
+      );
     }
   }
 }

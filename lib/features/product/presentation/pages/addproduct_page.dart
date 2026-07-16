@@ -20,7 +20,7 @@ class _AddproductPageState extends State<AddproductPage> {
       appBar: AppBar(title: Text("Thêm"), backgroundColor: Colors.green),
       body: BlocConsumer<ProductCubit, ProductState>(
         builder: (context, state) {
-          final isLoading = state is productLoading;
+          final isLoading = (state.status == ProductStatus.loading);
           final isEditable = !isLoading;
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -57,7 +57,7 @@ class _AddproductPageState extends State<AddproductPage> {
                   const SizedBox(height: 4),
                   TextFormField(
                     enabled: isEditable,
-                    controller: _cubit.nameP,
+                    controller: _cubit.nameProduct,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -75,7 +75,7 @@ class _AddproductPageState extends State<AddproductPage> {
                   const SizedBox(height: 4),
                   TextFormField(
                     enabled: isEditable,
-                    controller: _cubit.codeP,
+                    controller: _cubit.codeProduct,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -93,7 +93,7 @@ class _AddproductPageState extends State<AddproductPage> {
                   const SizedBox(height: 4),
                   TextFormField(
                     enabled: isEditable,
-                    controller: _cubit.priceP,
+                    controller: _cubit.priceProduct,
                     keyboardType: TextInputType.number,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: const InputDecoration(
@@ -117,7 +117,7 @@ class _AddproductPageState extends State<AddproductPage> {
                   const SizedBox(height: 4),
                   TextFormField(
                     enabled: isEditable,
-                    controller: _cubit.stockP,
+                    controller: _cubit.stockProduct,
                     keyboardType: TextInputType.number,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: const InputDecoration(
@@ -141,7 +141,7 @@ class _AddproductPageState extends State<AddproductPage> {
                   const SizedBox(height: 4),
                   TextFormField(
                     enabled: isEditable,
-                    controller: _cubit.descriptionP,
+                    controller: _cubit.descriptionProduct,
                     maxLines: 3,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -154,7 +154,7 @@ class _AddproductPageState extends State<AddproductPage> {
                   ),
                   TextFormField(
                     enabled: isEditable,
-                    controller: _cubit.linkImageP,
+                    controller: _cubit.linkImageProduct,
                     maxLines: 3,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -170,10 +170,10 @@ class _AddproductPageState extends State<AddproductPage> {
                       if (isLoading) {
                         return;
                       }
-                      if (_formKey.currentState!.validate()) {
-                        _cubit.addProduct(
-                          categoryId: _cubit.selectedCategoryId!,
-                        );
+                      final categoryID = _cubit.selectedCategoryId;
+                      if (_formKey.currentState?.validate() == true &&
+                          categoryID != null) {
+                        _cubit.addProduct(categoryId: categoryID);
                       }
                     },
                     child: isLoading
@@ -200,7 +200,7 @@ class _AddproductPageState extends State<AddproductPage> {
         },
         listener: (context, state) {
           if (!context.mounted) return;
-          if (state is productSuccess) {
+          if (state.status == ProductStatus.success) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Thêm sản phẩm thành công!"),
@@ -210,7 +210,7 @@ class _AddproductPageState extends State<AddproductPage> {
             );
             Navigator.pop(context);
           }
-          if (state is productFailure) {
+          if (state.status == ProductStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Thêm sản phẩm thất bại, vui lòng thử lại!"),

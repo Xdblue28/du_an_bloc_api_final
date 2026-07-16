@@ -1,4 +1,3 @@
-import 'package:bai8_duan_final_bloc/core/di/interjection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bai8_duan_final_bloc/features/product/domain/entities/product.dart';
@@ -18,29 +17,21 @@ class _EditProductPageState extends State<EditProductPage> {
   @override
   void initState() {
     super.initState();
-    _cubit = sl<ProductCubit>();
-    _cubit.nameP.text = widget.product.name;
-    _cubit.codeP.text = widget.product.code;
-    _cubit.priceP.text = widget.product.price.toString();
-    _cubit.stockP.text = widget.product.stock.toString();
-    _cubit.descriptionP.text = widget.product.description;
-    _cubit.linkImageP.text = widget.product.linkImage;
-    _cubit.selectedCategoryId = widget.product.category.id;
+    _cubit = context.read<ProductCubit>();
+    _cubit.setData(widget.product);
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<ProductCubit>(
-      create: (context) => _cubit,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: Text("Chỉnh sửa: ${widget.product.name}"),
-          backgroundColor: Colors.blueGrey,
+          backgroundColor: const Color.fromARGB(255, 9, 11, 12),
         ),
         body: BlocConsumer<ProductCubit, ProductState>(
           listener: (context, state) {
             if (!context.mounted) return;
-            if (state is productSuccess) {
+            if (state.status == ProductStatus.loading) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text("Cập nhật sản phẩm thành công!"),
@@ -52,7 +43,7 @@ class _EditProductPageState extends State<EditProductPage> {
               Navigator.pop(context);
             }
 
-            if (state is productFailure) {
+            if (state.status == ProductStatus.failure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text("Cập nhật thất bại, vui lòng thử lại!"),
@@ -63,7 +54,7 @@ class _EditProductPageState extends State<EditProductPage> {
             }
           },
           builder: (context, state) {
-            final isLoading = state is productLoading;
+            final isLoading = (state.status == ProductStatus.loading);
             final isEditable = !isLoading;
 
             return SingleChildScrollView(
@@ -101,7 +92,7 @@ class _EditProductPageState extends State<EditProductPage> {
                     const SizedBox(height: 4),
                     TextFormField(
                       enabled: isEditable,
-                      controller: _cubit.nameP,
+                      controller: _cubit.nameProduct,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
@@ -119,7 +110,7 @@ class _EditProductPageState extends State<EditProductPage> {
                     const SizedBox(height: 4),
                     TextFormField(
                       enabled: isEditable,
-                      controller: _cubit.codeP,
+                      controller: _cubit.codeProduct,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
@@ -137,7 +128,7 @@ class _EditProductPageState extends State<EditProductPage> {
                     const SizedBox(height: 4),
                     TextFormField(
                       enabled: isEditable,
-                      controller: _cubit.priceP,
+                      controller: _cubit.priceProduct,
                       keyboardType: TextInputType.number,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       decoration: const InputDecoration(
@@ -161,7 +152,7 @@ class _EditProductPageState extends State<EditProductPage> {
                     const SizedBox(height: 4),
                     TextFormField(
                       enabled: isEditable,
-                      controller: _cubit.stockP,
+                      controller: _cubit.stockProduct,
                       keyboardType: TextInputType.number,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       decoration: const InputDecoration(
@@ -185,7 +176,7 @@ class _EditProductPageState extends State<EditProductPage> {
                     const SizedBox(height: 4),
                     TextFormField(
                       enabled: isEditable,
-                      controller: _cubit.descriptionP,
+                      controller: _cubit.descriptionProduct,
                       maxLines: 3,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
@@ -198,7 +189,7 @@ class _EditProductPageState extends State<EditProductPage> {
                     ),
                     TextFormField(
                       enabled: isEditable,
-                      controller: _cubit.linkImageP,
+                      controller: _cubit.linkImageProduct,
                       maxLines: 3,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
@@ -245,8 +236,7 @@ class _EditProductPageState extends State<EditProductPage> {
             );
           },
         ),
-      ),
-    );
+      );
   }
 }
 //
